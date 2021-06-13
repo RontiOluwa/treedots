@@ -11,10 +11,10 @@
           <h3 class="m-4">Hubs Near You</h3>
         </div>
         <ul class="m-4">
-          <li class="p-3 cursor-pointer hover:bg-gray-100" v-for="(item, index) in address" v-bind:key="item.id"  @click="filterHub(item.position, index)">
+          <li class="p-3 cursor-pointer hover:bg-gray-100" v-for="(item, index) in address" v-bind:key="item.id"  @click="filterHub(item.distances, item.position, index)">
             <div class="flex">
               <div class="w-10/12">
-                <p class="text-xs">{{item.distances}} KM away from you</p>
+                <p class="text-xs" v-if="item.distances">{{item.distances}} KM away from you</p>
                 <a>{{item.name}}</a>
               </div>
               <div class="w-12 text-right">
@@ -48,7 +48,8 @@ export default {
     Map, Top
   },
   methods: {
-    filterHub: function(position, index){
+    filterHub: function(distances, position, index){
+      console.log(distances)
       this.address.splice(index, 1);
       this.position = position;
     },
@@ -64,11 +65,9 @@ export default {
         const baseURI = 'https://maps.googleapis.com/maps/api/geocode/json?key='+process.env.VUE_APP_API_KEY+'&address='+list.name+''
         this.$http.get(baseURI)
         .then((result) => {
-          console.log(result)
-          console.log(result.data.results[0].geometry.location)
           list.position = result.data.results[0].geometry.location
-          list.distances = Math.pow(list.position.lat - this.position.lat, 2) + Math.pow(list.position.lng - this.position.lng, 2);
-          console.log(list.distances)
+          var distances = Math.pow(result.data.results[0].geometry.location.lat - this.position.lat, 2) + Math.pow(result.data.results[0].geometry.location.lng - this.position.lng, 2);
+          list.distances = distances.toString()
         }).catch((error)=>{
           console.log('error'+ error)
         });
@@ -95,10 +94,10 @@ export default {
       });
     },
   },
-  beforeMount () {
-    this.AddtoHub();
+  mounted() {
     this.geolocate();
-  },
+    this.AddtoHub();
+  }
 }
 </script>
 
