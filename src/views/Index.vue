@@ -34,6 +34,7 @@
 
 import Map from '../components/Map.vue'
 import Top from '../components/Top.vue'
+import axios from "axios";
 import Hub from '../json/hubs.json'
 export default {
   name: 'App',
@@ -58,16 +59,15 @@ export default {
       return String.fromCharCode(65 + index);
     },
     
-    AddtoHub: function name() {
+    async AddtoHub() {
 
       for (let i = 0; i < this.hubs.length; i++) {
         const list = this.hubs[i];
         const baseURI = 'https://maps.googleapis.com/maps/api/geocode/json?key='+process.env.VUE_APP_API_KEY+'&address='+list.name+''
-        this.$http.get(baseURI)
+        await axios.get(baseURI)
         .then((result) => {
           list.position = result.data.results[0].geometry.location
-          var distances = Math.pow(result.data.results[0].geometry.location.lat - this.position.lat, 2) + Math.pow(result.data.results[0].geometry.location.lng - this.position.lng, 2);
-          list.distances = distances.toString()
+          list.distances = Math.pow(result.data.results[0].geometry.location.lat - this.position.lat, 2) + Math.pow(result.data.results[0].geometry.location.lng - this.position.lng, 2);
         }).catch((error)=>{
           console.log('error'+ error)
         });
@@ -82,21 +82,20 @@ export default {
       } 
     },
 
-    geolocate: function() {
+    getCurrentPosition() {
       navigator.geolocation.getCurrentPosition(position => {
         this.position = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        console.log(this.position)
+        this.AddtoHub();
       },error => {
         console.log(error.message);
       });
     },
   },
-  mounted() {
-    this.geolocate();
-    this.AddtoHub();
+  async mounted() {
+    this.getCurrentPosition();
   }
 }
 </script>
